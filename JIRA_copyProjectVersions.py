@@ -24,7 +24,7 @@ urllib3.disable_warnings()
 
 # initiate
 jira = JIRA(options=options, basic_auth=(jiraUser, jiraPass))
-print(f"Moving all versions from project '{projectA}' to project '{projectB}'...")
+print(f"Copying all versions from project '{projectA}' to project '{projectB}'...")
 
 for ver in jira.project_versions(projectA):
     verDesc  = ver.raw['description'] if 'description' in ver.raw else ""

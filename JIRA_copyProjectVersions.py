@@ -26,16 +26,48 @@ urllib3.disable_warnings()
 jira = JIRA(options=options, basic_auth=(jiraUser, jiraPass))
 print(f"Moving all versions from project '{projectA}' to project '{projectB}'...")
 
-for version in jira.project_versions(projectA):
-    print(version, '... ', end='')
+for ver in jira.project_versions(projectA):
+    verDesc  = ver.raw['description'] if 'description' in ver.raw else ""
+    verStart = ver.raw['startDate'] if 'startDate' in ver.raw else None
+    verEnd   = ver.raw['releaseDate'] if 'releaseDate' in ver.raw else None
+    print(ver, '... ', end='')
 
-    # some condition added - e.g. when we don't want archived version or specific
-    if version.archived or not re.search(r'^1.[0-9]', version.name):
-        print("skipped")
+    # some condition added - e.g. when we don't want archived ver or specific
+    if ver.archived:
+        print("skipped - archived")
         continue
 
-    try:
-        jira.create_version(version.name, projectB)
+    if not re.search(r'^1.[0-9]', ver.name):
+        print("skipped - doesn't matach")
+        continue
+
+    verB = jira.get_project_version_by_name(projectB, ver.name)
+
+    if verB: # if target version exists, just update it
+        verB.update(description=verDesc,
+                    startDate=verStart,
+                    releaseDate=verEnd,
+                    archived=ver.archived,
+                    released=ver.released)
+        print("updated")
+    else: # create a new one                
+        jira.create_version(ver.name,
+                            projectB,
+                            description=verDesc,
+                            startDate=verStart,
+                            releaseDate=verEnd,
+                            archived=ver.archived,
+                            released=ver.released)
         print("created")
-    except:
-        print("error - already exists?")
+
+# optional -- deleting all versions in the target project
+##for ver in jira.project_versions(projectB):
+##    print(ver, '... ', end='')
+##
+##    verCount = jira.version_count_related_issues(ver.id)
+##    if verCount['issuesFixedCount'] or \
+##       verCount['issuesAffectedCount'] or \
+##       verCount['issueCountWithCustomFieldsShowingVersion']:
+##        print('exists - skipping...')
+##    else:
+##        print('deleting...', ver.delete())

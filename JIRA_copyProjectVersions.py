@@ -68,6 +68,6 @@ for ver in jira.project_versions(projectA):
 ##    if verCount['issuesFixedCount'] or \
 ##       verCount['issuesAffectedCount'] or \
 ##       verCount['issueCountWithCustomFieldsShowingVersion']:
-##        print('exists - skipping...')
+##        print('existing issues - skipping...')
 ##    else:
 ##        print('deleting...', ver.delete())

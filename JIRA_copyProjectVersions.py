@@ -24,8 +24,22 @@ urllib3.disable_warnings()
 
 # initiate
 jira = JIRA(options=options, basic_auth=(jiraUser, jiraPass))
-print(f"Copying all versions from project '{projectA}' to project '{projectB}'...")
 
+# optional - deleting all existing versions in the target project
+print(f"Deleting all unused versions in the project '{projectB}'...")
+for ver in jira.project_versions(projectB):
+    print(ver, '... ', end='')
+
+    verCount = jira.version_count_related_issues(ver.id)
+    if verCount['issuesFixedCount'] or \
+       verCount['issuesAffectedCount'] or \
+       verCount['issueCountWithCustomFieldsShowingVersion']:
+        print('existing issues - skipping...')
+    else:
+        ver.delete()
+        print("deleted")
+
+print(f"Copying all versions from project '{projectA}' to project '{projectB}'...")
 for ver in jira.project_versions(projectA):
     verDesc  = ver.raw['description'] if 'description' in ver.raw else ""
     verStart = ver.raw['startDate'] if 'startDate' in ver.raw else None
@@ -62,15 +76,3 @@ for ver in jira.project_versions(projectA):
         if ver.archived:
             verB.update(archived=True)
         print("created")
-
-# optional -- deleting all versions in the target project
-##for ver in jira.project_versions(projectB):
-##    print(ver, '... ', end='')
-##
-##    verCount = jira.version_count_related_issues(ver.id)
-##    if verCount['issuesFixedCount'] or \
-##       verCount['issuesAffectedCount'] or \
-##       verCount['issueCountWithCustomFieldsShowingVersion']:
-##        print('existing issues - skipping...')
-##    else:
-##        print('deleting...', ver.delete())

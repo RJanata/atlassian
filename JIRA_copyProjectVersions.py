@@ -51,13 +51,16 @@ for ver in jira.project_versions(projectA):
                     released=ver.released)
         print("updated")
     else: # create a new one                
-        jira.create_version(ver.name,
+        verB = jira.create_version(ver.name,
                             projectB,
                             description=verDesc,
                             startDate=verStart,
                             releaseDate=verEnd,
-                            archived=ver.archived,
                             released=ver.released)
+        
+        # set archived flag in the second call (because of bug https://jira.atlassian.com/browse/JRASERVER-61990)
+        if ver.archived:
+            verB.update(archived=True)
         print("created")
 
 # optional -- deleting all versions in the target project
